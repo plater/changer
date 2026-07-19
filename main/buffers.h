@@ -27,7 +27,7 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 //#include "interleaved_pwm.h"
-//#include "messages.h"
+
 
 #define DLY1SEC()   		vTaskDelay(1000 / portTICK_PERIOD_MS)
 #define DLYHSEC()   		vTaskDelay(500 / portTICK_PERIOD_MS)
@@ -54,19 +54,27 @@
 #define BUTR2   IOEXP0
 #define BUTR5   IOEXP1
 #define SERVICE IOEXP2
+#define IOIN    get_io()
+#define IOPIN(pin) get_pin_level(pin)
 
 #define LEDON	ESP_ERROR_CHECK(gpio_set_level(HPR5_REV, 0))
 #define LEDOFF	ESP_ERROR_CHECK(gpio_set_level(HPR5_REV, 1))
+#define R10IN   (~(gpio_get_level(R10_in)) & 1)
+#define R01IN	(~(gpio_get_level(R1_in)) & 1)
+#define R1SEN   (~(gpio_get_level(R1sense)) & 1)
+#define R2SEN   (~(gpio_get_level(R2sense)) & 1)
+#define R5SEN   (~(gpio_get_level(R5sense)) & 1)
 #define R1IN    ESP_LOGI("main", "R1sense = %d", x)
 #define R2IN    ESP_LOGI("main", "R2sense = %d", x)
 #define R5IN    ESP_LOGI("main", "R5sense = %d", x)
 
 /* Memory allocate */
 extern uint16_t credit;
-extern volatile uint64_t timer;
-extern volatile uint64_t tstore;
-extern volatile uint8_t r10add;
-extern volatile uint8_t r1add;
+extern uint8_t  errorflg;
+extern uint64_t timer;
+extern uint64_t tstore;
+extern uint8_t r10add;
+extern uint8_t r1add;
 extern i2c_dev_t pcf_gpio_dev;
 extern i2c_dev_t pcf_lcd_dev;
 extern hd44780_t lcd_dev;
@@ -76,7 +84,7 @@ extern uint8_t scrollpos;
 extern size_t msgsize;
 extern int* parg;
 extern gpio_isr_handle_t gpint;
-char errormsg[32];
+extern char errormsg[32];
 /* Function defines */
 void init_gpio(void);
 void i2c_init(void);
@@ -92,6 +100,14 @@ void error_msg(char* errtype);
 uint16_t retrieve_credit();
 void store_credit(uint16_t x);
 void credisp(void);
+void loadincoin(void);
+void dly_msec(uint16_t msecs);
+uint64_t get_elapsed(void);
+void pay_r1(uint8_t numb);
+void pay_r2(uint8_t numb);
+void pay_r5(uint8_t numb);
+uint8_t get_io(void);
+bool get_pin_level(uint8_t pin);
 
 
 #endif /* MAIN_BUFFERS_H_ */

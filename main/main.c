@@ -1,6 +1,10 @@
 			
 #include "buffers.h"
-#include "messages.h"
+#include "freertos/idf_additions.h"
+
+uint64_t timer;
+uint64_t tstore;
+uint64_t elapsed;
 
 void app_main(void)
 {
@@ -9,52 +13,63 @@ void app_main(void)
 	hd44780_clear(&lcd_dev);
 	lcd_write_string("0123456789ABCDEF");
 	ESP_ERROR_CHECK(nvs_flash_init());
+	LEDOFF;
 	credit = retrieve_credit();
 	if(credit)
 	{
 		credisp();
 	}
-	strcpy(msgbuf, incoinmsg);
+	loadincoin();
+	dispense(1, 1);
 	scrollpos = 0;
-	gpio_set_level(HPR1, 0);
-	int x;
-	int count = 0;
-	r10add = 0;
-	r1add = 0;
-	/* 5. Enable the interrupts */
-	ESP_ERROR_CHECK(gpio_intr_enable(R1_in)); 
-	ESP_ERROR_CHECK(gpio_intr_enable(R10_in)); 
+	int x = 0;
+	uint16_t shcred = credit;
+	tstore = esp_timer_get_time();
+	uint64_t elapsed;
     while (true) 
 	{
-		if(!credit || count)
-		{
-			LEDON;
-			lcd_scroll_string(msgbuf);
-        	
-		}	
-		x = r10add + r1add;
+		vTaskDelay(1);
+		x = R10IN | R01IN;
 		while(x)
 		{
-			ESP_LOGI("cash_in", "cash input, R10 = %d and R1 = %d", r10add, r1add);
-			if(r10add)
+			ESP_LOGI("cash_in", "cash input, R10 = %d and R1 = %d", R10IN, R01IN);
+			if(R10IN)
 			{
+				tstore = esp_timer_get_time();
 				tens_in();
 			}
-			if(r1add)
+			if(R01IN)
 			{
+				tstore = esp_timer_get_time(); 
 				ones_in();
 			}
-			r10add = 0;
-			r1add  = 0;
-			x = r10add + r1add;
+			x = R10IN | R01IN;
 		}
-		DLY5MSEC();
-		count++;
-		if(count >+ 100)
+		elapsed = get_elapsed();
+		if(elapsed > 500000) //300 mSec
 		{
-			count = 0;
+			if(IOPIN(0))
+			{
+				LEDON;
+			}
+			else
+			{
+				LEDOFF;
+			}
+//			dispense(1, 1);
+			if(credit)
+			{
+				if(shcred != credit)
+				{
+					credisp();
+					shcred = credit;
+				}
+			}
+			else
+			{
+				lcd_scroll_string(msgbuf);
+			}
+			tstore = esp_timer_get_time();
 		}
-//	gpio_set_intr_type(R10_in, GPIO_INTR_NEGEDGE);
-//	gpio_set_intr_type(R1_in, GPIO_INTR_NEGEDGE);
     }
 }

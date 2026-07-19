@@ -6,15 +6,21 @@
  */
 
  #include "buffers.h"
- #include "messages.h"
  
  
+ const char incoinmsg[] = {"- * Insert Coins or Notes press R5 or R2 button and collect change * - "};
+ const char calljoe[]   = {" Error Call Joe"};
  
  char msgbuf[128];
  char msg16[17];
  uint8_t scrollpos;
  size_t msgsize;
 
+ void loadincoin(void)
+ {
+	strcpy(msgbuf, incoinmsg);
+ }
+ 
 void lcd_write_string(const char *str)
 {
     char first_half[9] = {0};  // 8 chars + null terminator
@@ -51,7 +57,7 @@ void error_msg(char* errtype)
 
 void lcd_scroll_string(char *str)
 {
-	msgsize = strlen(msgbuf);
+	msgsize = strnlen(msgbuf, sizeof(msgbuf));
 	strncpy(msg16, msgbuf + scrollpos, 16);
 	msg16[16] = 0;
 	lcd_write_string(msg16);
@@ -64,6 +70,7 @@ void lcd_scroll_string(char *str)
 
 void credisp(void)
 {
+	credit = retrieve_credit();
 	int num = sprintf(msg16, "Credit R%d", credit);
 	lcd_write_string(msg16);
 }
