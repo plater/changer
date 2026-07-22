@@ -35,27 +35,42 @@ uint16_t dispense(uint8_t numb, uint8_t value)
 
 void pay_r1(uint8_t numb)
 {
+	double tnow;
+	double tpsw;
+	double tstr;
+	
 	tstore = esp_timer_get_time();
-	gpio_set_level(HPR1, 1);
+	ESP_LOGI("payr1", "tstore = %lf", tstore);
+	R1ON;
 	while(!R1SEN)
 	{
 		vTaskDelay(1);
-		if(get_elapsed() > (3000 * 1000))// Allow 3 seconds for the first coin
+/*		if(get_elapsed() > (5000 * 1000))// Allow 3 seconds for the first coin
 		{
+			R1OFF;
 			errorflg = 1;
-			gpio_set_level(HPR1, 0);
-		}
+		}*/
 	}
+	
+//	dly_msec(1);
 	tstore = esp_timer_get_time();
-	dly_msec(5);
+	tstr = tstore / 1000;
+//	tryagn:
 	while(R1SEN)// Coin on it's way out
 	{
-		if(get_elapsed() > (500 * 1000))// Allow 3 seconds for the first coin
+/*		if(get_elapsed() > (3000 * 1000))// Allow 3 seconds for the first coin
 		{
 			errorflg = 1;
-			gpio_set_level(HPR1, 0);
-		}
+			R1OFF;
+			ESP_LOGI("pay", "hopper time out");
+		}*/
 	}
+	R1OFF;
+	timer = esp_timer_get_time();
+	tnow = timer / 1000;
+	tpsw = tnow - tstr;
+//	tpsw = tpsw / 1000;
+	ESP_LOGI("pay", "Coin took %f msec to pass switch\n tstore = %f\n timer = %f", tpsw , tstr, tnow);
 }
 
 void pay_r2(uint8_t numb)

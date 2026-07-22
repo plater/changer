@@ -1,3 +1,10 @@
+/*
+ * main.c
+ *
+ *  Created on: 07 Jul 2026
+ *      Author: davejplater@gmail.com
+ */
+
 			
 #include "buffers.h"
 #include "freertos/idf_additions.h"

@@ -67,12 +67,21 @@
 #define R1IN    ESP_LOGI("main", "R1sense = %d", x)
 #define R2IN    ESP_LOGI("main", "R2sense = %d", x)
 #define R5IN    ESP_LOGI("main", "R5sense = %d", x)
+#define R1OFF	gpio_set_level(HPR1, 0);
+#define R1ON	gpio_set_level(HPR1, 1);
+#define R2OFF	gpio_set_level(HPR2, 0);
+#define R2ON	gpio_set_level(HPR2, 1);
+#define R5OFF	gpio_set_level(HPR5, 0);
+#define R5ON	gpio_set_level(HPR5, 1);
 
 /* Memory allocate */
 extern uint16_t credit;
 extern uint8_t  errorflg;
 extern uint64_t timer;
 extern uint64_t tstore;
+extern double tnow;
+extern double tpsw;
+extern double tstr;
 extern uint8_t r10add;
 extern uint8_t r1add;
 extern i2c_dev_t pcf_gpio_dev;
