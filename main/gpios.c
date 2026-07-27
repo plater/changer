@@ -30,7 +30,7 @@
      ESP_ERROR_CHECK(gpio_config(&output)); 
      gpio_set_level(HPR1, 0); 
      gpio_set_level(HPR2, 0); 
-     gpio_set_level(HPR5, 1); 
+     gpio_set_level(HPR5, 0); 
 
      /* 2. Configure Inputs with NEGEDGE from the start */
      input.pin_bit_mask = INPUT; 

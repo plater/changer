@@ -1,7 +1,7 @@
 /*
  * buffers.h
  *
- *  Created on: 07 Jul 2026
+ *  Created on: 07 July 2026
  *      Author: davejplater@gmail.com
  */
 #pragma once
@@ -26,8 +26,12 @@
 #include "esp_timer.h"
 #include "nvs_flash.h"
 #include "nvs.h"
-//#include "interleaved_pwm.h"
+#include "freertos/idf_additions.h"
 
+enum { 	PAY_OK = 0,
+		HOPPER_EMT = 1,
+		HOPPER_JAM  = 2,
+	};
 
 #define DLY1SEC()   		vTaskDelay(1000 / portTICK_PERIOD_MS)
 #define DLYHSEC()   		vTaskDelay(500 / portTICK_PERIOD_MS)
@@ -51,11 +55,15 @@
 #define R1_in		GPIO_NUM_20
 #define R10_in		GPIO_NUM_21
 
-#define BUTR2   IOEXP0
-#define BUTR5   IOEXP1
-#define SERVICE IOEXP2
-#define IOIN    get_io()
-#define IOPIN(pin) get_pin_level(pin)
+#define BUTR2   	!(get_pin_level(3))
+#define BUTR5   	!(get_pin_level(4))
+#define SERVICE 	!(get_pin_level(5))
+#define IOIN    	get_io()
+#define IOPIN(pin) 	get_pin_level(pin)
+#define COINEN		set_pin_level(6, 0)
+#define COINDS		set_pin_level(6, 1)
+#define NOTEEN		set_pin_level(7, 0)
+#define NOTEDS		set_pin_level(7, 1)
 
 #define LEDON	ESP_ERROR_CHECK(gpio_set_level(HPR5_REV, 0))
 #define LEDOFF	ESP_ERROR_CHECK(gpio_set_level(HPR5_REV, 1))
@@ -67,12 +75,12 @@
 #define R1IN    ESP_LOGI("main", "R1sense = %d", x)
 #define R2IN    ESP_LOGI("main", "R2sense = %d", x)
 #define R5IN    ESP_LOGI("main", "R5sense = %d", x)
-#define R1OFF	gpio_set_level(HPR1, 0);
-#define R1ON	gpio_set_level(HPR1, 1);
-#define R2OFF	gpio_set_level(HPR2, 0);
-#define R2ON	gpio_set_level(HPR2, 1);
-#define R5OFF	gpio_set_level(HPR5, 0);
-#define R5ON	gpio_set_level(HPR5, 1);
+#define R1OFF	gpio_set_level(HPR1, 0)
+#define R1ON	gpio_set_level(HPR1, 1)
+#define R2OFF	gpio_set_level(HPR2, 0)
+#define R2ON	gpio_set_level(HPR2, 1)
+#define R5OFF	gpio_set_level(HPR5, 0)
+#define R5ON	gpio_set_level(HPR5, 1)
 
 /* Memory allocate */
 extern uint16_t credit;
@@ -96,27 +104,35 @@ extern gpio_isr_handle_t gpint;
 extern char errormsg[32];
 /* Function defines */
 void init_gpio(void);
+
 void i2c_init(void);
 void dsp_init(void);
 void lcd_write_string(const char *str);
 void lcd_scroll_string(char *str);
-uint16_t dispense(uint8_t numb, uint8_t value);
-static void r10_isr_handler(void* arg);
-static void r1_isr_handler(void* arg);
-void tens_in(void);
-void ones_in(void);
 void error_msg(char* errtype);
 uint16_t retrieve_credit();
 void store_credit(uint16_t x);
 void credisp(void);
 void loadincoin(void);
+void call_joe(int broken, int what);
+
+void tens_in(void);
+void ones_in(void);
 void dly_msec(uint16_t msecs);
 uint64_t get_elapsed(void);
-void pay_r1(uint8_t numb);
-void pay_r2(uint8_t numb);
-void pay_r5(uint8_t numb);
 uint8_t get_io(void);
 bool get_pin_level(uint8_t pin);
+void set_io(uint8_t thedata);
+void set_pin_level(uint8_t pin, uint32_t value);
+uint8_t pay_r1(uint8_t numb);
+uint8_t pay_r2(uint8_t numb);
+uint8_t pay_r5(uint8_t numb);
+void process_credit(void);
+void dispense_r1(void);
+void dispense_r2(void);
+void dispense_r5(void);
+void  disable_cn(void);
+
 
 
 #endif /* MAIN_BUFFERS_H_ */

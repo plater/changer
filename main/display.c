@@ -13,12 +13,38 @@
  
  char msgbuf[128];
  char msg16[17];
- uint8_t scrollpos;
  size_t msgsize;
-
+ uint8_t scrollpos;
+ 
  void loadincoin(void)
  {
 	strcpy(msgbuf, incoinmsg);
+ }
+ 
+ void call_joe(int broken, int what)
+ {
+	strcpy(msgbuf, calljoe);
+	switch(broken)
+	{
+		case HOPPER_EMT :	sprintf(msgbuf, "- ** R%c Hopper empty %s ** -", what, calljoe);
+							break;
+		case HOPPER_JAM :	sprintf(msgbuf, "- ** R%c Hopper jam %s ** -", what, calljoe);
+	}
+	errorflg = 1;
+	while(errorflg)
+	{
+		lcd_scroll_string(msgbuf);
+		dly_msec(500);
+		if(SERVICE)
+		{
+			errorflg = 0;
+		}
+	}
+	while(SERVICE)
+	{
+		dly_msec(1);
+	}
+	loadincoin();
  }
  
 void lcd_write_string(const char *str)

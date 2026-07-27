@@ -78,6 +78,11 @@ hd44780_t lcd_dev;       // Descriptor for the HD44780 abstraction
      hd44780_puts(&lcd_dev, "GPIO @ 0x20 ready");
 }
 
+void set_io(uint8_t thedata)
+{
+	ESP_ERROR_CHECK(pcf8574_port_write(&pcf_gpio_dev, thedata));
+}
+
 uint8_t get_io(void)
 {
 	uint8_t thedata;
@@ -85,10 +90,15 @@ uint8_t get_io(void)
 	return thedata;
 }
 
+void set_pin_level(uint8_t pin, uint32_t value)
+{
+	ESP_ERROR_CHECK(pcf8574_set_level(&pcf_gpio_dev, pin, value));
+}
+
 bool get_pin_level(uint8_t pin)
 {
 	uint32_t x;
-	pcf8574_get_level(&pcf_gpio_dev, pin, &x);
+	ESP_ERROR_CHECK(pcf8574_get_level(&pcf_gpio_dev, pin, &x));
 	return (x != 0);
 }
 

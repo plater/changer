@@ -7,7 +7,6 @@
 
 			
 #include "buffers.h"
-#include "freertos/idf_additions.h"
 
 uint64_t timer;
 uint64_t tstore;
@@ -21,18 +20,31 @@ void app_main(void)
 	lcd_write_string("0123456789ABCDEF");
 	ESP_ERROR_CHECK(nvs_flash_init());
 	LEDOFF;
+	if(SERVICE)
+	{
+		LEDON;
+		ESP_LOGI("ccred", "about to clear credit");
+		store_credit(0);
+		ESP_LOGI("ccred", "credit =%d", credit);
+	}
+	while(SERVICE){}
+	LEDOFF;
 	credit = retrieve_credit();
 	if(credit)
 	{
 		credisp();
 	}
 	loadincoin();
-	dispense(1, 1);
 	scrollpos = 0;
 	int x = 0;
 	uint16_t shcred = credit;
-	tstore = esp_timer_get_time();
+	
 	uint64_t elapsed;
+	uint64_t tstore2;
+	uint64_t tstore4;
+	uint8_t timeout = 0;
+	tstore = esp_timer_get_time();
+	tstore2 = tstore;
     while (true) 
 	{
 		vTaskDelay(1);
@@ -44,26 +56,54 @@ void app_main(void)
 			{
 				tstore = esp_timer_get_time();
 				tens_in();
+				x = 10;
 			}
 			if(R01IN)
 			{
 				tstore = esp_timer_get_time(); 
 				ones_in();
+				x = 1;
+			}
+			tstore = esp_timer_get_time();
+			elapsed = get_elapsed();
+			while(elapsed <= 750000 )
+			{
+				uint32_t tstore3;
+				if(x == 10)
+				{
+					if(R10IN)
+					{
+						tstore3 = tstore;
+						tstore = esp_timer_get_time();
+						tens_in();
+						x = 10;
+						tstore = tstore3;
+					}
+				}
+				else
+				{
+					if(R01IN)
+					{
+						tstore3 = tstore;
+						tstore = esp_timer_get_time();
+						ones_in();
+						x = 1;
+						tstore = tstore3;
+					}
+				}
+				elapsed = get_elapsed();
 			}
 			x = R10IN | R01IN;
 		}
-		elapsed = get_elapsed();
-		if(elapsed > 500000) //300 mSec
+		tstore = tstore2;
+		if(credit > 10)
 		{
-			if(IOPIN(0))
-			{
-				LEDON;
-			}
-			else
-			{
-				LEDOFF;
-			}
-//			dispense(1, 1);
+			NOTEDS;
+			COINDS;
+		}
+		elapsed = get_elapsed();
+		if(elapsed > 500000) //500 mSec
+		{
 			if(credit)
 			{
 				if(shcred != credit)
@@ -71,12 +111,28 @@ void app_main(void)
 					credisp();
 					shcred = credit;
 				}
+				if(credit > 1)
+				{
+					process_credit();
+				}
+				if(credit == 1)
+				{
+					timeout++;
+					if(timeout >= 60)
+					{
+						timeout = 0;
+						dispense_r1();
+					}
+				}
 			}
 			else
 			{
+				NOTEEN;
+				COINEN;
 				lcd_scroll_string(msgbuf);
 			}
 			tstore = esp_timer_get_time();
+			tstore2 = tstore;
 		}
     }
 }
