@@ -41,29 +41,30 @@ enum { 	PAY_OK = 0,
 #define DLYTMSEC()			vTaskDelay(10 / portTICK_PERIOD_MS)
 
 /* GPIO Defines */
-#define R5sense		GPIO_NUM_0
-#define R2sense		GPIO_NUM_1
-#define HPR5_FWD	GPIO_NUM_2
-#define R1sense		GPIO_NUM_3
-#define SCL			GPIO_NUM_4
-#define SDA			GPIO_NUM_5
-#define HPR1		GPIO_NUM_6
-#define HPR2		GPIO_NUM_7
-#define HPR5_REV	GPIO_NUM_8
-#define ENOTE		GPIO_NUM_9
-#define HPR5		GPIO_NUM_10
-#define R1_in		GPIO_NUM_20
-#define R10_in		GPIO_NUM_21
-
-#define BUTR2   	!(get_pin_level(3))
+#define R5sense		GPIO_NUM_0 //R5 universal hopper MKII modified, sensor active low on coin exit
+#define R2sense		GPIO_NUM_1 //R2 1980s Azkoyen hopper with added electronic exit sensor, active low on coin exit
+#define HPR5_FWD	GPIO_NUM_2 //Forward control for Universal hopper motor Not used
+#define R1sense		GPIO_NUM_3 //R1 Azkoyen cube hopper fully electronic, active low on coin exit
+#define SCL			GPIO_NUM_4 //i2c
+#define SDA			GPIO_NUM_5 //i2c
+#define HPR1		GPIO_NUM_6 //R1 hopper active high enable
+#define HPR2		GPIO_NUM_7 //R2 hopper  active high enable
+#define HPR5_REV	GPIO_NUM_8 //Reverse control for R5 universal hopper, not used.
+#define ENOTE		GPIO_NUM_9 //Bill validator with pulse output active low enable
+#define HPR5		GPIO_NUM_10 //R5 hopper active high enable
+#define R1_in		GPIO_NUM_20 // Coin validator pulse input active low one pulse = R1 Coins = R1, R2, R5
+#define R10_in		GPIO_NUM_21 /* Bill validator with pulse output active low one pulse = R10. Notes accepted R10, R20 & R50
+  A maximum pay of R10 worth of R2 coins, Only one note allowed per transaction and R50 always pays 5 x R2 coins and 8 x R5 coins
+  The R1 coins are only used as change ie. A R5 credit will give 2 x R2 and a R1 as change when the R2 button is pressed */
+#define BUTR2   	!(get_pin_level(3)) 
 #define BUTR5   	!(get_pin_level(4))
 #define SERVICE 	!(get_pin_level(5))
-#define IOIN    	get_io()
+#define IOIN    	get_io() // PCF8574 expander
 #define IOPIN(pin) 	get_pin_level(pin)
-#define COINEN		set_pin_level(6, 0)
+#define COINEN		set_pin_level(6, 0) // Coin validator enable, not fitted
 #define COINDS		set_pin_level(6, 1)
-#define NOTEEN		set_pin_level(7, 0)
-#define NOTEDS		set_pin_level(7, 1)
+#define NOTEEN		set_pin_level(7, 0) // Bill validator enable
+#define NOTEDS		set_pin_level(7, 1) // Bill validator disable
 
 #define LEDON	ESP_ERROR_CHECK(gpio_set_level(HPR5_REV, 0))
 #define LEDOFF	ESP_ERROR_CHECK(gpio_set_level(HPR5_REV, 1))

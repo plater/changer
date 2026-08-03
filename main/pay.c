@@ -147,9 +147,8 @@ uint8_t pay_r2(uint8_t numb)
 			}
 		}
 		R2OFF;
-		dly_msec(60);
 		tstore = esp_timer_get_time();
-//		dly_msec(1);
+		dly_msec(1);
 		while(R2SEN)// Coin on it's way out
 		{
 			dly_msec(1);
@@ -234,8 +233,9 @@ uint8_t pay_r5(uint8_t numb)
 					return HOPPER_EMT;
 				}
 			}
+			R5OFF;
 			tstore = esp_timer_get_time();
-			dly_msec(2);
+			dly_msec(1);
 			while(R5SEN)// Coin on it's way out
 			{
 				dly_msec(1);
@@ -245,8 +245,6 @@ uint8_t pay_r5(uint8_t numb)
 					ESP_LOGI("pay", "hopper jam");
 					return HOPPER_JAM;
 				}
-				dly_msec(10);
-				R5OFF;
 				dly_msec(100);
 			}
 			tstore = esp_timer_get_time();
