@@ -50,7 +50,7 @@ enum { 	PAY_OK = 0,
 #define HPR1		GPIO_NUM_6 //R1 hopper active high enable
 #define HPR2		GPIO_NUM_7 //R2 hopper  active high enable
 #define HPR5_REV	GPIO_NUM_8 //Reverse control for R5 universal hopper, not used.
-#define ENOTE		GPIO_NUM_9 //Bill validator with pulse output active low enable
+#define SPARE		GPIO_NUM_9 //Bill validator with pulse output active low enable
 #define HPR5		GPIO_NUM_10 //R5 hopper active high enable
 #define R1_in		GPIO_NUM_20 // Coin validator pulse input active low one pulse = R1 Coins = R1, R2, R5
 #define R10_in		GPIO_NUM_21 /* Bill validator with pulse output active low one pulse = R10. Notes accepted R10, R20 & R50
