@@ -1,2 +1,2 @@
 # changer
-Change machyine controller with 3 differnt coin channels
+Change machine controller with 3 different coin channels

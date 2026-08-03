@@ -6,6 +6,7 @@
  */
 
  #include "buffers.h"
+#include <stdlib.h>
  
  
  const char incoinmsg[] = {"- * Insert Coins or Notes press R5 or R2 button and collect change * - "};
@@ -44,7 +45,7 @@
 	{
 		dly_msec(1);
 	}
-	loadincoin();
+	abort();
  }
  
 void lcd_write_string(const char *str)

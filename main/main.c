@@ -64,35 +64,6 @@ void app_main(void)
 				ones_in();
 				x = 1;
 			}
-			tstore = esp_timer_get_time();
-			elapsed = get_elapsed();
-			while(elapsed <= 750000 )
-			{
-				uint32_t tstore3;
-				if(x == 10)
-				{
-					if(R10IN)
-					{
-						tstore3 = tstore;
-						tstore = esp_timer_get_time();
-						tens_in();
-						x = 10;
-						tstore = tstore3;
-					}
-				}
-				else
-				{
-					if(R01IN)
-					{
-						tstore3 = tstore;
-						tstore = esp_timer_get_time();
-						ones_in();
-						x = 1;
-						tstore = tstore3;
-					}
-				}
-				elapsed = get_elapsed();
-			}
 			x = R10IN | R01IN;
 		}
 		tstore = tstore2;
@@ -104,6 +75,7 @@ void app_main(void)
 		elapsed = get_elapsed();
 		if(elapsed > 500000) //500 mSec
 		{
+			credit = retrieve_credit();
 			if(credit)
 			{
 				if(shcred != credit)
@@ -111,18 +83,9 @@ void app_main(void)
 					credisp();
 					shcred = credit;
 				}
-				if(credit > 1)
+				if(credit)
 				{
 					process_credit();
-				}
-				if(credit == 1)
-				{
-					timeout++;
-					if(timeout >= 60)
-					{
-						timeout = 0;
-						dispense_r1();
-					}
 				}
 			}
 			else

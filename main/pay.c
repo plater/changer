@@ -7,6 +7,7 @@
  
  #include "buffers.h"
 #include "nvs.h"
+#include <stdlib.h>
  
  #define MIN_WIDTH (1000 * 10)//Minimum allowable pulse width 10mS
  #define MAX_WIDTH (1000 * 1000)//Maximum allowable pulse width one second
@@ -25,6 +26,9 @@ void dispense_r1(void)//crdhod, crdhod0, crdhod1;
 {
 	credit = retrieve_credit();
 	numbs = credit;
+	ESP_LOGI("disR1", "credit = %d numbs = %d ", credit, numbs);
+	sprintf(msgbuf, "Dispense R1 x %d", (uint16_t)numbs);
+	lcd_write_string(msgbuf);
 	uint8_t y = pay_r1(numbs);
 	switch(y)
 	{
@@ -36,6 +40,7 @@ void dispense_r1(void)//crdhod, crdhod0, crdhod1;
 		break;
 		default         :
 	}
+	ESP_LOGI("R1PAY_OK", "Returning");
 }
 
 uint8_t pay_r1(uint8_t numb)
@@ -55,10 +60,10 @@ uint8_t pay_r1(uint8_t numb)
 			}
 		}
 		tstore = esp_timer_get_time();
-		dly_msec(1);
+		dly_msec(10);
 		while(R1SEN)// Coin on it's way out
 		{
-			dly_msec(1);
+			dly_msec(10);
 			if(get_elapsed() > (500 * 1000))// Allow 500ms for the coin exit
 			{
 				R1OFF;
@@ -68,12 +73,13 @@ uint8_t pay_r1(uint8_t numb)
 		}
 		tstore = esp_timer_get_time();
 		--numb;
-		if(numb <= 0)
+		ESP_LOGI("payr1", "numb = %d credit - 1 = %d", numb, (credit--));
+		if(numb == 0)
 		{
 			credit = retrieve_credit();
 			credit--;
 			store_credit(credit);
-			dly_msec(1);
+			dly_msec(20);
 			R1OFF;
 		}
 		else
@@ -83,6 +89,7 @@ uint8_t pay_r1(uint8_t numb)
 			store_credit(credit);
 			goto nextcoin1;
 		}
+	ESP_LOGI("payR1 Ok", "credit = %d numbs = %d", credit, numbs);
 	return PAY_OK;
 }
 
@@ -90,10 +97,14 @@ void dispense_r2(void)//crdhod, crdhod0, crdhod1;
 {
 	credit = retrieve_credit();
 	numbs = credit / 2;
+	payed = credit % 2;
+	ESP_LOGI("disR2", "credit = %d numbs = %d remainder = %d", credit, numbs, payed);
 	if(numbs > 5)
 	{
 		numbs = 5;
 	}
+	sprintf(msgbuf, "Dispense R2 x %d", (uint16_t)numbs);
+	lcd_write_string(msgbuf);
 	uint8_t y = pay_r2(numbs);
 	switch(y)
 	{
@@ -102,11 +113,10 @@ void dispense_r2(void)//crdhod, crdhod0, crdhod1;
 		case HOPPER_JAM :	call_joe(HOPPER_JAM, '2');
 		goto error;
 		case PAY_OK   	:
-		break;
 		default         :
 	}
 	credit = retrieve_credit();
-	if(credit >= 5)
+	if(credit >= 10)
 	{
 		dispense_r5();
 	}
@@ -115,7 +125,8 @@ void dispense_r2(void)//crdhod, crdhod0, crdhod1;
 	{
 		dispense_r1();
 	}
-	error:
+	ESP_LOGI("R2PAY_OK", "Returning");
+		error:
 }
 
 uint8_t pay_r2(uint8_t numb)
@@ -123,7 +134,7 @@ uint8_t pay_r2(uint8_t numb)
 	uint64_t elapsed;
 	nextcoin2:
 		tstore = esp_timer_get_time();
-		ESP_LOGI("payr2", "tstore = %llu", tstore);
+		ESP_LOGI("1payr2", "tstore = %llu numbs = %d", tstore, numbs);
 		R2ON;
 		while(!R2SEN)
 		{
@@ -135,8 +146,10 @@ uint8_t pay_r2(uint8_t numb)
 				return HOPPER_EMT;
 			}
 		}
+		R2OFF;
+		dly_msec(60);
 		tstore = esp_timer_get_time();
-		dly_msec(1);
+//		dly_msec(1);
 		while(R2SEN)// Coin on it's way out
 		{
 			dly_msec(1);
@@ -150,7 +163,7 @@ uint8_t pay_r2(uint8_t numb)
 		tstore = esp_timer_get_time();
 		--numb;
 		credit = retrieve_credit();
-//		ESP_LOGI("payr2", "numb = %d", numb);
+		ESP_LOGI("2payr2", "numb = %d credit - 2 = %d", numb, (credit - 2));
 		if(numb > 0)
 		{
 			credit = credit - 2;
@@ -165,7 +178,14 @@ uint8_t pay_r2(uint8_t numb)
 			R2OFF;
 			credit = credit - 2;
 			store_credit(credit);
+			if(credit == 2)
+			{
+				goto nextcoin2;
+			}
+			ESP_LOGI("3payr2", "numb = %d credit - 2 = %d", numb, credit);
+			
 		}
+	ESP_LOGI("payR2 Ok", "credit = %d numbs = %d", credit, numbs);
 	return PAY_OK;
 }
 
@@ -173,11 +193,16 @@ void dispense_r5(void)//crdhod, crdhod0, crdhod1;
 {
 	credit = retrieve_credit();
 	numbs = credit / 5;
+	payed = credit % 5;
+	ESP_LOGI("disR5", "credit = %d numbs = %d remainder = %d", credit, numbs, payed);
 	if(numbs > 8)
 	{
 		crumbs = numbs % 8;
 		numbs  = numbs - crumbs;
 	}
+	ESP_LOGI("disR5", "credit = %d numbs = %d crumbs = %d", credit, numbs, crumbs);
+	sprintf(msgbuf, "Dispense R5 x %d", (uint16_t)numbs);
+	lcd_write_string(msgbuf);
 	uint8_t y = pay_r5(numbs);
 	switch(y)
 	{
@@ -186,9 +211,9 @@ void dispense_r5(void)//crdhod, crdhod0, crdhod1;
 		case HOPPER_JAM :	call_joe(HOPPER_JAM, '5');
 		break;
 		case PAY_OK   	:
-		break;
 		default         :
 	}
+	ESP_LOGI("R5PAY_OK", "Returning");
 }
 
 uint8_t pay_r5(uint8_t numb)
@@ -198,6 +223,7 @@ uint8_t pay_r5(uint8_t numb)
 			tstore = esp_timer_get_time();
 			ESP_LOGI("payr2", "tstore = %llu", tstore);
 			R5ON;
+			dly_msec(10);
 			while(!R5SEN)
 			{
 				vTaskDelay(1);
@@ -209,7 +235,7 @@ uint8_t pay_r5(uint8_t numb)
 				}
 			}
 			tstore = esp_timer_get_time();
-			dly_msec(1);
+			dly_msec(2);
 			while(R5SEN)// Coin on it's way out
 			{
 				dly_msec(1);
@@ -219,6 +245,9 @@ uint8_t pay_r5(uint8_t numb)
 					ESP_LOGI("pay", "hopper jam");
 					return HOPPER_JAM;
 				}
+				dly_msec(10);
+				R5OFF;
+				dly_msec(100);
 			}
 			tstore = esp_timer_get_time();
 			--numb;
@@ -234,16 +263,17 @@ uint8_t pay_r5(uint8_t numb)
 			}
 			else
 			{
-				dly_msec(1);
 				R5OFF;
 				credit = credit - 5;
 				store_credit(credit);
 			}
+		ESP_LOGI("payR5 Ok", "credit = %d numbs = %d", credit, numbs);
 		return PAY_OK;
 }
 
 void tens_in(void)
 {
+	uint64_t elapsed;
 	dly_msec(5);//Wait for 5mS debounce
 	if(R10IN)
 	{
@@ -258,11 +288,18 @@ void tens_in(void)
 	credit = retrieve_credit();
 	credit = credit + 10;
 	store_credit(credit);
+	tstore = esp_timer_get_time();
+	while(R10IN)
+	{
+		elapsed = get_elapsed();
+		
+	}
 	endof:
 }
 
 void ones_in(void)
 {
+		uint64_t elapsed;
 		dly_msec(5);//Wait for 5mS debounce
 		if(!R01IN)
 		{
@@ -276,6 +313,11 @@ void ones_in(void)
 		credit = retrieve_credit();
 		credit++;
 		store_credit(credit);
+		tstore = esp_timer_get_time();
+		while(R01IN)
+		{
+			elapsed = get_elapsed();
+		}
 	endof:
 }
 
@@ -307,7 +349,8 @@ uint16_t retrieve_credit(void)
 		ESP_ERROR_CHECK(err);
 	} 
 	ESP_ERROR_CHECK(nvs_get_u16(crhandle, "cash", &x));
-	nvs_close(crhandle);	
+	nvs_close(crhandle);
+	ESP_LOGI("ret cred", "retrieved credit = %d", credit);
 	return x;
 }
 void deduct_credit(uint16_t minus)
@@ -322,13 +365,17 @@ void store_credit(uint16_t x)
 	ESP_ERROR_CHECK(nvs_open("money", NVS_READWRITE, &crhandle));
 	ESP_ERROR_CHECK(nvs_set_u16(crhandle, "cash", x));
 	ESP_ERROR_CHECK(nvs_commit(crhandle));
-	nvs_close(crhandle);	
+	nvs_close(crhandle);
+	ESP_LOGI("store cred", "stored credit = %d", credit);
 }
 
 void process_credit(void)
 {
 	if(BUTR2)
 	{
+		lcd_write_string("R2 button press");
+		dly_msec(100);
+		ESP_LOGI("BUTR2", "Two rand button pressed credit = %d", credit);
 		if(credit >= 2)
 		{
 			dispense_r2();
@@ -337,9 +384,13 @@ void process_credit(void)
 	}
 	if(credit >= 5)
 	{
+//		NOTEDS;
+//		NOTEDS;
 		if(BUTR5)
 		{
-			if(credit > 41)
+			lcd_write_string("R5 button press");
+			ESP_LOGI("BUTR5", "R5 pressed, credit = %d", credit);
+			if(credit >= 40)
 			{
 				dispense_r2();
 			}
@@ -348,6 +399,11 @@ void process_credit(void)
 				dispense_r5();
 			}
 		}
+	}
+	credit = retrieve_credit();
+	if(credit == 0)
+	{
+		abort();
 	}
 }
 
