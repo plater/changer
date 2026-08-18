@@ -28,6 +28,8 @@
 #include "nvs.h"
 #include "freertos/idf_additions.h"
 
+#define COMHOP
+
 enum { 	PAY_OK = 0,
 		HOPPER_EMT = 1,
 		HOPPER_JAM  = 2,
@@ -70,6 +72,9 @@ enum { 	PAY_OK = 0,
 #define LEDOFF	ESP_ERROR_CHECK(gpio_set_level(HPR5_REV, 1))
 #define R10IN   (~(gpio_get_level(R10_in)) & 1)
 #define R01IN	(~(gpio_get_level(R1_in)) & 1)
+#define R1cSEN   gpio_get_level(R1sense)
+#define R2cSEN   gpio_get_level(R2sense)
+#define R5cSEN   gpio_get_level(R5sense)
 #define R1SEN   (~(gpio_get_level(R1sense)) & 1)
 #define R2SEN   (~(gpio_get_level(R2sense)) & 1)
 #define R5SEN   (~(gpio_get_level(R5sense)) & 1)
@@ -134,6 +139,7 @@ void dispense_r2(void);
 void dispense_r5(void);
 void  disable_cn(void);
 
-
+void store_error(int strclr);
+uint16_t retrieve_error(void);
 
 #endif /* MAIN_BUFFERS_H_ */

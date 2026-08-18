@@ -25,6 +25,7 @@
  void call_joe(int broken, int what)
  {
 	strcpy(msgbuf, calljoe);
+	
 	switch(broken)
 	{
 		case HOPPER_EMT :	sprintf(msgbuf, "- ** R%c Hopper empty %s ** -", what, calljoe);
@@ -32,6 +33,7 @@
 		case HOPPER_JAM :	sprintf(msgbuf, "- ** R%c Hopper jam %s ** -", what, calljoe);
 	}
 	errorflg = 1;
+	store_error(1);
 	while(errorflg)
 	{
 		lcd_scroll_string(msgbuf);
@@ -44,10 +46,10 @@
 	while(SERVICE)
 	{
 		dly_msec(1);
+		store_error(0);
 	}
 	abort();
  }
- 
 void lcd_write_string(const char *str)
 {
     char first_half[9] = {0};  // 8 chars + null terminator
