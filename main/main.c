@@ -19,9 +19,6 @@ void app_main(void)
 	hd44780_clear(&lcd_dev);
 	lcd_write_string("0123456789ABCDEF");
 	ESP_ERROR_CHECK(nvs_flash_init());
- R1ON;
- dly_msec(1000);
- R1OFF;
 	if(retrieve_error() == 1)
 	{
 		call_joe(HOPPER_EMT, 6);
