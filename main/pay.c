@@ -47,8 +47,9 @@ uint8_t pay_r1(uint8_t numb)
 {
 #ifdef COMHOP
 		R1ON;
-		dly_msec(5);//Wait for valid signal after PU
+		dly_msec(2);//Wait for valid signal after PU
 		nextcoin1:
+  R1ON;
 		tstore = esp_timer_get_time();
 	
 		dly_msec(2);
@@ -63,6 +64,7 @@ uint8_t pay_r1(uint8_t numb)
 			}
 		}
 		tstore = esp_timer_get_time();
+  R1OFF;
 		dly_msec(2);
 		while(R1cSEN)// Coin on it's way out
 		{
