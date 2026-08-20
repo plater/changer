@@ -50,7 +50,7 @@ uint8_t pay_r1(uint8_t numb)
 		dly_msec(5);//Wait for valid signal after PU
 		nextcoin1:
 		tstore = esp_timer_get_time();
-		ESP_LOGI("payr1", "tstore = %llu", tstore);
+	
 		dly_msec(2);
 		while(!R1cSEN)
 		{
