@@ -494,7 +494,7 @@ void store_credit(uint16_t x)
 	ESP_ERROR_CHECK(nvs_set_u16(crhandle, "cash", x));
 	ESP_ERROR_CHECK(nvs_commit(crhandle));
 	nvs_close(crhandle);
-	ESP_LOGI("store cred", "stored credit = %d", credit);
+	
 }
 
 void process_credit(void)
