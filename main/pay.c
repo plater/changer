@@ -477,7 +477,7 @@ uint16_t retrieve_credit(void)
 	} 
 	ESP_ERROR_CHECK(nvs_get_u16(crhandle, "cash", &x));
 	nvs_close(crhandle);
-	ESP_LOGI("ret cred", "retrieved credit = %d", credit);
+	
 	return x;
 }
 
