@@ -1,4 +1,4 @@
-/*
+ok/*
  * pay.c
  *
  *  Created on: 13 Jul 2026
@@ -64,7 +64,6 @@ uint8_t pay_r1(uint8_t numb)
 			}
 		}
 		tstore = esp_timer_get_time();
-  R1OFF;
 		dly_msec(2);
 		while(R1cSEN)// Coin on it's way out
 		{
@@ -76,6 +75,7 @@ uint8_t pay_r1(uint8_t numb)
 				return HOPPER_JAM;
 			}
 		}
+   R1OFF;
 		tstore = esp_timer_get_time();
 		--numb;
 		ESP_LOGI("payr1", "numb = %d credit - 1 = %d", numb, (credit--));
