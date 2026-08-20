@@ -1,4 +1,4 @@
-ok/*
+/*
  * pay.c
  *
  *  Created on: 13 Jul 2026
