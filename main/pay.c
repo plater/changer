@@ -49,7 +49,7 @@ uint8_t pay_r1(uint8_t numb)
 		R1ON;
 		dly_msec(6);//Wait for valid signal after PU
 		nextcoin1:
-  R1ON;
+  		R1ON;
 		tstore = esp_timer_get_time();
 	
 		dly_msec(2);
@@ -63,6 +63,8 @@ uint8_t pay_r1(uint8_t numb)
 				return HOPPER_EMT;
 			}
 		}
+		uint64_t gone = get_elapsed();
+		ESP_LOGI("payr1", "took %llu micro seconds to detect coin", gone);
 		tstore = esp_timer_get_time();
 		dly_msec(2);
 		while(R1cSEN)// Coin on it's way out
@@ -75,7 +77,9 @@ uint8_t pay_r1(uint8_t numb)
 				return HOPPER_JAM;
 			}
 		}
-   R1OFF;
+   		R1OFF;
+		gone = get_elapsed();
+		ESP_LOGI("payr1", "coin took %llu micro seconds to pass exit", gone);
 		tstore = esp_timer_get_time();
 		--numb;
 		ESP_LOGI("payr1", "numb = %d credit - 1 = %d", numb, (credit--));
