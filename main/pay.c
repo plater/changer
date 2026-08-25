@@ -537,9 +537,18 @@ void process_credit(void)
 		}
 	}
 	credit = retrieve_credit();
+	credchk:
 	if(credit == 0)
 	{
 		abort();
+	}
+	else
+	{
+		if(credit > 0)
+		{
+			dispense_r1;
+		}
+		goto credchk;
 	}
 }
 
