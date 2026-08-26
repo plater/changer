@@ -25,6 +25,27 @@
 void dispense_r1(void)//crdhod, crdhod0, crdhod1;
 {
 	credit = retrieve_credit();
+	errorflg = retrieve_error();
+	if((errorflg == 1) || (errorflg == 3) || (errorflg == 6))
+	{
+		switch(errorflg)
+		{
+			case 2   : if(credit >= 5)
+			{
+				dispense_r5();
+			}
+			if(credit >= 2)
+			{
+				dispense_r2();
+			}
+				goto error;
+			case 3   : if(credit >= 5)
+			{
+				dispense_r5();
+			}
+				goto error;
+		}
+	}
 	numbs = credit;
 	ESP_LOGI("disR1", "credit = %d numbs = %d ", credit, numbs);
 	sprintf(msgbuf, "Dispense R1 x %d", (uint16_t)numbs);
@@ -41,6 +62,7 @@ void dispense_r1(void)//crdhod, crdhod0, crdhod1;
 		default         :
 	}
 	ESP_LOGI("R1PAY_OK", "Returning");
+	error:
 }
 
 uint8_t pay_r1(uint8_t numb)
@@ -151,6 +173,29 @@ else
 void dispense_r2(void)//crdhod, crdhod0, crdhod1;
 {
 	credit = retrieve_credit();
+	errorflg = retrieve_error();
+	if((errorflg == 2) || (errorflg == 3) || (errorflg == 7))
+	{
+		switch(errorflg)
+		{
+			case 2   : if(credit >= 5)
+			{
+				dispense_r5();
+			}
+			else
+			{
+				dispense_r1();
+			}
+				goto error;
+			case 3   : if(credit >= 5)
+			{
+				dispense_r5();
+			}
+				goto error;
+			case 7   : dispense_r1();
+				goto error;
+		}
+	}
 	numbs = credit / 2;
 	payed = credit % 2;
 	ESP_LOGI("disR2", "credit = %d numbs = %d remainder = %d", credit, numbs, payed);
@@ -260,6 +305,15 @@ return PAY_OK;
 void dispense_r5(void)//crdhod, crdhod0, crdhod1;
 {
 	credit = retrieve_credit();
+	errorflg = retrieve_error();
+	if(errorflg >= 5)
+	{
+		if(credit >= 2)
+		{
+			dispense_r2();
+			goto error;
+		}
+	}
 	numbs = credit / 5;
 	payed = credit % 5;
 	ESP_LOGI("disR5", "credit = %d numbs = %d remainder = %d", credit, numbs, payed);
@@ -282,6 +336,7 @@ void dispense_r5(void)//crdhod, crdhod0, crdhod1;
 		default         :
 	}
 	ESP_LOGI("R5PAY_OK", "Returning");
+	error:
 }
 
 uint8_t pay_r5(uint8_t numb)
@@ -417,7 +472,7 @@ void ones_in(void)
 		}
 	endof:
 	elapsed = get_elapsed();
-	while(elapsed <= (100 * 1000))//wait for next pulse
+	while(elapsed <= (300 * 1000))//wait for next pulse
 	{
 		if(R01IN)
 		{
@@ -505,8 +560,15 @@ void store_credit(uint16_t x)
 
 void process_credit(void)
 {
+	errorflg = retrieve_error();
 	if(BUTR2)
 	{
+		if((errorflg == 2) || (errorflg == 3) || (errorflg == 7))
+		{
+			lcd_write_string("R2 hopper empty");
+			dly_msec(3000);
+			goto error;
+		}
 		NOTEDS;
 		lcd_write_string("R2 button press");
 		dly_msec(100);
@@ -515,12 +577,17 @@ void process_credit(void)
 		{
 			dispense_r2();
 		}
-		
+		error:
 	}
 	if(credit >= 5)
 	{
-//		NOTEDS;
-//		NOTEDS;
+		if(errorflg >= 5)
+		{
+			lcd_write_string("R5 hopper empty");
+			dly_msec(3000);
+			goto error5;
+		}
+		NOTEDS;
 		if(BUTR5)
 		{
 			NOTEDS;
@@ -546,10 +613,11 @@ void process_credit(void)
 	{
 		if(credit > 0)
 		{
-			dispense_r1;
+			dispense_r1();
 		}
 		goto credchk;
 	}
+	error5:
 }
 
 

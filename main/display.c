@@ -25,22 +25,40 @@
  void call_joe(int broken, int what)
  {
 	strcpy(msgbuf, calljoe);
-	
+	char whatis[16];
+	errorflg = retrieve_error();
+	errorflg = errorflg + what;
+	store_error(errorflg);
+	switch(errorflg)
+	{
+		case 1 :           strcpy(whatis, "R1 ");
+		break;
+		case 2 :           strcpy(whatis, "R2 ");
+		break;
+		case 3 :           strcpy(whatis, "R1 & R2 ");
+		break;
+		case 5 :           strcpy(whatis, "R5 ");
+		break;
+		case 6 :           strcpy(whatis, "R5 & R1 ");
+		break;
+		case 7 :           strcpy(whatis, "R1 & R5 ");
+		break;
+		case 8 :           strcpy(whatis, "All ");
+	}
 	switch(broken)
 	{
-		case HOPPER_EMT :	sprintf(msgbuf, "- ** R%c Hopper empty %s ** -", what, calljoe);
+		case HOPPER_EMT :	sprintf(msgbuf, "- ** %s Hopper empty %s ** -", whatis, calljoe);
 							break;
-		case HOPPER_JAM :	sprintf(msgbuf, "- ** R%c Hopper jam %s ** -", what, calljoe);
+		case HOPPER_JAM :	sprintf(msgbuf, "- ** %s Hopper jam %s ** -", whatis, calljoe);
 	}
-	errorflg = 1;
-	store_error(1);
-	while(errorflg)
+	while(errorflg == 8)
 	{
 		lcd_scroll_string(msgbuf);
 		dly_msec(500);
 		if(SERVICE)
 		{
 			errorflg = 0;
+			store_error(0);
 		}
 	}
 	while(SERVICE)
