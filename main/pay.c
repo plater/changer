@@ -581,15 +581,15 @@ void process_credit(void)
 	}
 	if(credit >= 5)
 	{
-		if(errorflg >= 5)
-		{
-			lcd_write_string("R5 hopper empty");
-			dly_msec(3000);
-			goto error5;
-		}
 		NOTEDS;
 		if(BUTR5)
 		{
+			if(errorflg >= 5)
+			{
+				lcd_write_string("R5 hopper empty");
+				dly_msec(3000);
+				goto error5;
+			}
 			NOTEDS;
 			lcd_write_string("R5 button press");
 			ESP_LOGI("BUTR5", "R5 pressed, credit = %d", credit);
