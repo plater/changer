@@ -20,6 +20,7 @@ void app_main(void)
 	lcd_write_string("0123456789ABCDEF");
 	ESP_ERROR_CHECK(nvs_flash_init());
 	if(retrieve_error() >= 1)
+	
 	{
 		call_joe(HOPPER_EMT, 6);
 	}

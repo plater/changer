@@ -142,4 +142,6 @@ void  disable_cn(void);
 void store_error(int strclr);
 uint16_t retrieve_error(void);
 
+uint8_t empty_r1(void);
+
 #endif /* MAIN_BUFFERS_H_ */
