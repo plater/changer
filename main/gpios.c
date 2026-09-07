@@ -1,3 +1,4 @@
+
 /*
  * gpios.c
  *
@@ -60,6 +61,7 @@
  	 gpio_new_pin_glitch_filter(&g5itch, &R5sense_hand);
 	 gpio_new_pin_glitch_filter(&g2r1ch, &R2sense_hand);
  	 gpio_new_pin_glitch_filter(&g1r1ch, &R1sense_hand);
+	 ESP_ERROR_CHECK(gpio_set_pull_mode(R1sense, GPIO_FLOATING));
 }
 
 

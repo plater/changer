@@ -14,6 +14,7 @@
  #define R5speed   (1000 / 3)
 
  char errormsg[32];
+ volatile int x;
  uint16_t payed;
  nvs_handle_t crhandle;
  uint16_t credit;
@@ -67,15 +68,11 @@ void dispense_r1(void)//crdhod, crdhod0, crdhod1;
 
 uint8_t pay_r1(uint8_t numb)
 {
-#ifdef COMHOP
 		R1ON;
-		dly_msec(6);//Wait for valid signal after PU
+		dly_msec(3);//Wait for valid signal after PU
 		nextcoin1:
-  		R1ON;
-		tstore = esp_timer_get_time();
-	
-		dly_msec(2);
-		while(!R1cSEN)
+ 		tstore = esp_timer_get_time();
+		do
 		{
 			vTaskDelay(1);
 			if(get_elapsed() > (5000 * 1000))// Allow 5 seconds for the first coin
@@ -84,22 +81,21 @@ uint8_t pay_r1(uint8_t numb)
 				ESP_LOGI("payr1", "hopper timeout");
 				return HOPPER_EMT;
 			}
-		}
+			x = gpio_get_level(R1sense);
+		}while(x == 1);
 		uint64_t gone = get_elapsed();
 		ESP_LOGI("payr1", "took %llu micro seconds to detect coin", gone);
 		tstore = esp_timer_get_time();
-		dly_msec(2);
-		while(R1cSEN)// Coin on it's way out
+		do
 		{
-			dly_msec(3);
 			if(get_elapsed() > (500 * 1000))// Allow 500ms for the coin exit
 			{
 				R1OFF;
 				ESP_LOGI("pay", "hopper jam");
 				return HOPPER_JAM;
 			}
-		}
-   		R1OFF;
+			x = gpio_get_level(R1sense);
+		}while(x == 0)// Coin on it's way out
 		gone = get_elapsed();
 		ESP_LOGI("payr1", "coin took %llu micro seconds to pass exit", gone);
 		tstore = esp_timer_get_time();
@@ -120,52 +116,6 @@ uint8_t pay_r1(uint8_t numb)
 			store_credit(credit);
 			goto nextcoin1;
 		}
-#else
-nextcoin1:
-tstore = esp_timer_get_time();
-ESP_LOGI("payr1", "tstore = %llu", tstore);
-R1ON;
-while(!R1SEN)
-{
-	vTaskDelay(1);
-	if(get_elapsed() > (5000 * 1000))// Allow 5 seconds for the first coin
-	{
-		R1OFF;
-		ESP_LOGI("payr1", "hopper timeout");
-		return HOPPER_EMT;
-	}
-}
-tstore = esp_timer_get_time();
-dly_msec(10);
-while(R1SEN)// Coin on it's way out
-{
-	dly_msec(10);
-	if(get_elapsed() > (500 * 1000))// Allow 500ms for the coin exit
-	{
-		R1OFF;
-		ESP_LOGI("pay", "hopper jam");
-		return HOPPER_JAM;
-	}
-}
-tstore = esp_timer_get_time();
---numb;
-ESP_LOGI("payr1", "numb = %d credit - 1 = %d", numb, (credit--));
-if(numb == 0)
-{
-	credit = retrieve_credit();
-	credit--;
-	store_credit(credit);
-	dly_msec(20);
-	R1OFF;
-}
-else
-{
-	credit = retrieve_credit();
-	credit--;
-	store_credit(credit);
-	goto nextcoin1;
-}
-#endif
 	ESP_LOGI("payR1 Ok", "credit = %d numbs = %d", credit, numbs);
 	return PAY_OK;
 }
@@ -488,6 +438,16 @@ uint64_t get_elapsed(void)
 	timer = esp_timer_get_time();
 	lapsed = timer - tstore;
 	return lapsed;
+}
+
+uint16_t get_elapsedm(void)
+{
+	uint64_t lapsed;
+	uint16_t lapsedm;
+	timer = esp_timer_get_time();
+	lapsed = timer - tstore;
+	lapsedm = lapsed / 1024;
+	return lapsedm;
 }
 
 void dly_msec(uint16_t msecs)

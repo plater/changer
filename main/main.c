@@ -8,9 +8,9 @@
 			
 #include "buffers.h"
 
-uint64_t timer;
-uint64_t tstore;
-uint64_t elapsed;
+volatile uint64_t timer;
+volatile uint64_t tstore;
+volatile uint64_t elapsed;
 
 void app_main(void)
 {
@@ -19,8 +19,9 @@ void app_main(void)
 	hd44780_clear(&lcd_dev);
 	lcd_write_string("0123456789ABCDEF");
 	ESP_ERROR_CHECK(nvs_flash_init());
-	if(retrieve_error() >= 1)
-	
+	uint8_t k = empty_r1();
+	ESP_LOGI("main", "paid %d coins", k);
+	if(retrieve_error() >= 1)	
 	{
 		call_joe(HOPPER_EMT, 6);
 	}

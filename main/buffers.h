@@ -46,7 +46,7 @@ enum { 	PAY_OK = 0,
 #define R5sense		GPIO_NUM_0 //R5 universal hopper MKII modified, sensor active low on coin exit
 #define R2sense		GPIO_NUM_1 //R2 1980s Azkoyen hopper with added electronic exit sensor, active low on coin exit
 #define HPR5_FWD	GPIO_NUM_2 //Forward control for Universal hopper motor Not used
-#define R1sense		GPIO_NUM_3 //R1 Azkoyen cube hopper fully electronic, active low on coin exit
+#define R1sense		GPIO_NUM_3 //R1 TSP056 compact hopper electronic, active low on coin exit(manual says active high)
 #define SCL			GPIO_NUM_4 //i2c
 #define SDA			GPIO_NUM_5 //i2c
 #define HPR1		GPIO_NUM_6 //R1 hopper active high enable
@@ -91,8 +91,8 @@ enum { 	PAY_OK = 0,
 /* Memory allocate */
 extern uint16_t credit;
 extern uint8_t  errorflg;
-extern uint64_t timer;
-extern uint64_t tstore;
+extern volatile uint64_t timer;
+extern volatile uint64_t tstore;
 extern double tnow;
 extern double tpsw;
 extern double tstr;
@@ -126,6 +126,7 @@ void tens_in(void);
 void ones_in(void);
 void dly_msec(uint16_t msecs);
 uint64_t get_elapsed(void);
+uint16_t get_elapsedm(void);
 uint8_t get_io(void);
 bool get_pin_level(uint8_t pin);
 void set_io(uint8_t thedata);
