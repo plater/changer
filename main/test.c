@@ -8,6 +8,61 @@
  
 #include "buffers.h"
 
+void empty_hoppers(void)
+{
+	volatile uint8_t y;
+	volatile int posit = 0;
+	while(SERVICE){}
+	lcd_write_string("Empty R1 push R2");
+	repeat:
+	if(BUTR2)
+	{
+		switch(posit)
+		{
+			case 0 : y = empty_r1();
+			sprintf(msgbuf, "R1 count %d", y);
+			break;
+			case 1 : y = empty_r2();
+			sprintf(msgbuf, "R2 count %d", y);
+			break;
+			case 2 : y = empty_r5();
+			sprintf(msgbuf, "R5 count %d", y);
+			break;
+			case 3 : goto exit;
+		}
+		lcd_write_string(msgbuf);
+		while(BUTR2)
+		{
+			vTaskDelay(1);
+		}
+	}
+	if(BUTR5)
+	{
+		posit++;
+		posit = posit & 0x3;
+		switch(posit)
+		{
+			case 0 : sprintf(msgbuf, "Empty R1 coins");
+			break;
+			case 1 : sprintf(msgbuf, "Empty R2 coins");
+			break;
+			case 2 : sprintf(msgbuf, "Empty R5 coins");
+			break;
+			case 3 : sprintf(msgbuf, "Exit");
+			break;
+			default : posit = 0;
+		}
+		lcd_write_string(msgbuf);
+		while(BUTR5)
+		{
+			vTaskDelay(1);
+		}
+	}
+	vTaskDelay(1);
+	goto repeat;
+	exit:
+}
+
 uint8_t empty_r1(void)
 {
 	volatile int x;
@@ -74,6 +129,7 @@ uint8_t empty_r2(void)
 	do
 	{
 		x = gpio_get_level(R2sense);
+		printf("1.R2sense %d\n", x);
 		vTaskDelay(1);
 		timeout = get_elapsedm();
 		if(timeout >= 5000)
@@ -90,6 +146,7 @@ uint8_t empty_r2(void)
 	{
 		vTaskDelay(1);
 		x = gpio_get_level(R2sense);
+		printf("2.R2sense %d\n", x);
 	}while(x == 0);
 	elapsed = get_elapsed();
 	ESP_LOGI("testR2", "count = %d time to finish exit = %llu", count, elapsed);

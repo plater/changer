@@ -8,9 +8,12 @@
 			
 #include "buffers.h"
 
+uint8_t iobuf;
+uint16_t shcred;
 volatile uint64_t timer;
 volatile uint64_t tstore;
 volatile uint64_t elapsed;
+volatile int s;
 
 void app_main(void)
 {
@@ -19,12 +22,6 @@ void app_main(void)
 	hd44780_clear(&lcd_dev);
 	lcd_write_string("0123456789ABCDEF");
 	ESP_ERROR_CHECK(nvs_flash_init());
-	uint8_t k = empty_r1();
-	ESP_LOGI("main", "paid %d coins", k);
-	if(retrieve_error() >= 1)	
-	{
-		call_joe(HOPPER_EMT, 6);
-	}
 	LEDOFF;
 	if(SERVICE)
 	{
@@ -33,9 +30,22 @@ void app_main(void)
 		store_credit(0);
 		ESP_LOGI("ccred", "credit =%d", credit);
 		store_error(0);
+		lcd_write_string("Push R5 to empty");
 	}
-	while(SERVICE){}
+	do
+	{
+		vTaskDelay(1);
+		if(BUTR5)
+		{
+			empty_hoppers();
+		}
+	}while(SERVICE);
 	LEDOFF;
+	errorflg = retrieve_error();
+	if(errorflg == 8)	
+	{
+		call_joe();
+	}
 	credit = retrieve_credit();
 	if(credit)
 	{
@@ -47,13 +57,14 @@ void app_main(void)
 	}
 	scrollpos = 0;
 	int x = 0;
-	uint16_t shcred = credit;
+	shcred = credit;
 	uint64_t elapsed;
 	uint64_t tstore2;
 	uint64_t tstore4;
 	uint8_t timeout = 0;
 	tstore = esp_timer_get_time();
 	tstore2 = tstore;
+	s = 0;
     while (true) 
 	{
 		vTaskDelay(1);
@@ -78,12 +89,20 @@ void app_main(void)
 		if(credit)
 		{
 			process_credit();
+			s = 0;
+		}
+		else
+		{
+			if(s == 0)
+			{
+				loadincoin();
+				s = 1;
+			}
 		}
 		tstore = tstore2;
-		if(credit > 10)
+		if(credit >= 10)
 		{
 			NOTEDS;
-			COINDS;
 		}
 		elapsed = get_elapsed();
 		if(elapsed > 500000) //500 mSec
@@ -100,11 +119,30 @@ void app_main(void)
 			else
 			{
 				NOTEEN;
-				COINEN;
 				lcd_scroll_string(msgbuf);
+			}
+			if(SERVICE)
+			{
+				credit = retrieve_credit();
+				credit = credit + 10;
+				store_credit(credit);
+			}
+			while(SERVICE)
+			{
+				vTaskDelay(1);
+				
 			}
 			tstore = esp_timer_get_time();
 			tstore2 = tstore;
 		}
     }
 }
+
+
+
+
+
+
+
+
+

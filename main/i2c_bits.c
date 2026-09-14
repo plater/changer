@@ -34,9 +34,9 @@ hd44780_t lcd_dev;       // Descriptor for the HD44780 abstraction
      memset(&pcf_gpio_dev, 0, sizeof(i2c_dev_t));
      ESP_ERROR_CHECK(pcf8574_init_desc(&pcf_gpio_dev, PCF8574_GPIO_ADDR, I2C_PORT,
 		 SDA, SCL));
-     
+     iobuf = 0xFF;
      // Set all pins on your general I/O expander to high-impedance inputs or low outputs safely
-     pcf8574_port_write(&pcf_gpio_dev, 0xFF); 
+     pcf8574_port_write(&pcf_gpio_dev, iobuf); 
 
      // 3. Initialize the LCD-Facing PCF8574 (Address 0x27)
      memset(&pcf_lcd_dev, 0, sizeof(i2c_dev_t));
@@ -92,14 +92,16 @@ uint8_t get_io(void)
 
 void set_pin_level(uint8_t pin, uint32_t value)
 {
+	set_io(iobuf);// ensure pins remains an input and output
 	ESP_ERROR_CHECK(pcf8574_set_level(&pcf_gpio_dev, pin, value));
 }
 
 bool get_pin_level(uint8_t pin)
 {
 	uint32_t x;
+	set_io(iobuf);// ensure pin remains an input
 	ESP_ERROR_CHECK(pcf8574_get_level(&pcf_gpio_dev, pin, &x));
-	return (x != 0);
+	return (x == 0);
 }
 
 

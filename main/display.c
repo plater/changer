@@ -10,7 +10,8 @@
  
  
  const char incoinmsg[] = {"- * Insert Coins or Notes press R5 or R2 button and collect change * - "};
- const char calljoe[]   = {" Error Call Joe"};
+ const char incoin2[] 	= {"- * Insert Coins or Notes press "};
+ const char calljoe[]   = {"Error Call Joe. Machine empty."};
  
  char msgbuf[128];
  char msg16[17];
@@ -19,38 +20,33 @@
  
  void loadincoin(void)
  {
-	strcpy(msgbuf, incoinmsg);
- }
- 
- void call_joe(int broken, int what)
- {
-	strcpy(msgbuf, calljoe);
-	char whatis[16];
 	errorflg = retrieve_error();
-	errorflg = errorflg + what;
-	store_error(errorflg);
 	switch(errorflg)
 	{
-		case 1 :           strcpy(whatis, "R1 ");
-		break;
-		case 2 :           strcpy(whatis, "R2 ");
-		break;
-		case 3 :           strcpy(whatis, "R1 & R2 ");
-		break;
-		case 5 :           strcpy(whatis, "R5 ");
-		break;
-		case 6 :           strcpy(whatis, "R5 & R1 ");
-		break;
-		case 7 :           strcpy(whatis, "R1 & R5 ");
-		break;
-		case 8 :           strcpy(whatis, "All ");
+		case 0	:	strcpy(msgbuf, incoinmsg);
+		 			break;
+		case 1	:	sprintf(msgbuf, "%s R5 or R2 button for change, no R1 coins", incoin2);
+					break;
+		case 2	:	sprintf(msgbuf, "%s R5 button for change, no R2 coins", incoin2);
+					break;
+		case 3	:	sprintf(msgbuf, "%s R5 button for change, no R2 or R1 coins", incoin2);
+					break;
+		case 5	:	sprintf(msgbuf, "%s R2 button for change, no R5 coins", incoin2);
+					break;
+		case 6	:	sprintf(msgbuf, "%s R5 button for change, no R5 or R1 coins", incoin2);
+					break;
+		case 7	:	sprintf(msgbuf, "Call Joe, no R5 or R2 coins");
+					break;
+		case 8	:	sprintf(msgbuf, "%s ", calljoe);
+					break;
 	}
-	switch(broken)
-	{
-		case HOPPER_EMT :	sprintf(msgbuf, "- ** %s Hopper empty %s ** -", whatis, calljoe);
-							break;
-		case HOPPER_JAM :	sprintf(msgbuf, "- ** %s Hopper jam %s ** -", whatis, calljoe);
-	}
+ }
+ 
+ void call_joe(void)
+ {
+	errorflg = retrieve_error();
+	credit = retrieve_credit();
+	sprintf(msgbuf, " %s R%d left", calljoe, credit);
 	while(errorflg == 8)
 	{
 		lcd_scroll_string(msgbuf);
@@ -64,9 +60,8 @@
 	while(SERVICE)
 	{
 		dly_msec(1);
-		store_error(0);
 	}
-	abort();
+	esp_restart();
  }
 void lcd_write_string(const char *str)
 {

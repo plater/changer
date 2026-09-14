@@ -43,7 +43,7 @@
      input.pin_bit_mask = INPUT; 
      input.mode = GPIO_MODE_INPUT; 
      input.pull_up_en = true; 
-     input.intr_type = GPIO_INTR_DISABLE; 
+     input.intr_type = GPIO_INTR_DISABLE;  
      ESP_ERROR_CHECK(gpio_config(&input));
 	 glitch.clk_src = SOC_MOD_CLK_APB;
 	 glr1ch.clk_src = SOC_MOD_CLK_APB;
@@ -61,7 +61,10 @@
  	 gpio_new_pin_glitch_filter(&g5itch, &R5sense_hand);
 	 gpio_new_pin_glitch_filter(&g2r1ch, &R2sense_hand);
  	 gpio_new_pin_glitch_filter(&g1r1ch, &R1sense_hand);
-	 ESP_ERROR_CHECK(gpio_set_pull_mode(R1sense, GPIO_FLOATING));
+	 gpio_reset_pin(R2sense);
+	 ESP_ERROR_CHECK(gpio_input_enable(R2sense));
+	 ESP_ERROR_CHECK(gpio_pulldown_dis(R2sense));
+	 ESP_ERROR_CHECK(gpio_pullup_en(R2sense));
 }
 
 
